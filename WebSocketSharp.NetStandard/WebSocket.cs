@@ -1488,15 +1488,19 @@ namespace WebSocketSharp
     private void messagec (MessageEventArgs e)
     {
       do {
-        try {
-          OnMessage.Emit (this, e);
-        }
-        catch (Exception ex) {
-          _logger.Error (ex.ToString ());
-          error ("An error has occurred during an OnMessage event.", ex);
-        }
+            new Thread(() => {
+                try
+                {
+                    OnMessage.Emit(this, e);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex.ToString());
+                    error("An error has occurred during an OnMessage event.", ex);
+                }
+            }).Start();
 
-        lock (_forMessageEventQueue) {
+                lock (_forMessageEventQueue) {
           if (_messageEventQueue.Count == 0 || _readyState != WebSocketState.Open) {
             _inMessage = false;
             break;
@@ -1510,13 +1514,17 @@ namespace WebSocketSharp
 
     private void messages (MessageEventArgs e)
     {
-      try {
-        OnMessage.Emit (this, e);
-      }
-      catch (Exception ex) {
-        _logger.Error (ex.ToString ());
-        error ("An error has occurred during an OnMessage event.", ex);
-      }
+        new Thread(() => {
+            try
+            {
+                OnMessage.Emit(this, e);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.ToString());
+                error("An error has occurred during an OnMessage event.", ex);
+            }
+        }).Start();
 
       lock (_forMessageEventQueue) {
         if (_messageEventQueue.Count == 0 || _readyState != WebSocketState.Open) {
